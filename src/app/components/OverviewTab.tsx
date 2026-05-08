@@ -3,27 +3,11 @@ import { Frame, Search, GitBranch } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import ProfileModal, { type ProfileUser } from "./ProfileModal";
 import TaskDetailPanel from "./TaskDetailPanel";
-
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-
-function avatarBg(name: string) {
-  return PALETTE[name.charCodeAt(0) % PALETTE.length];
-}
-
-function initials(name: string) {
-  return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-}
+import { UserAvatar } from "./UserAvatar";
 
 function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
-  const sizes = { sm: "w-7 h-7 text-[10px]", md: "w-8 h-8 text-[11px]", lg: "w-10 h-10 text-[13px]" };
-  return (
-    <div
-      className={`${sizes[size]} rounded-full flex items-center justify-center font-semibold text-white flex-shrink-0`}
-      style={{ backgroundColor: avatarBg(name) }}
-    >
-      {initials(name)}
-    </div>
-  );
+  const avatarSize = size === "sm" ? "list" : size === "lg" ? "lg" : "md";
+  return <UserAvatar name={name} size={avatarSize} interactive />;
 }
 
 const STATUS_STYLES: Record<string, string> = {

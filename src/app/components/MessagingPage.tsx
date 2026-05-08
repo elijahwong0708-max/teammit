@@ -4,10 +4,7 @@ import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 import Sidebar from "./Sidebar";
 import ProfileModal, { type ProfileUser } from "./ProfileModal";
-
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-function avatarBg(name: string) { return PALETTE[name.charCodeAt(0) % PALETTE.length]; }
-function initials(name: string) { return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(); }
+import { UserAvatar } from "./UserAvatar";
 
 const TEAMS = [
   {
@@ -167,12 +164,7 @@ export default function MessagingPage() {
                         className="flex-shrink-0 hover:opacity-80 transition-opacity"
                         title="View profile"
                       >
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white"
-                          style={{ backgroundColor: avatarBg(member.name) }}
-                        >
-                          {initials(member.name)}
-                        </div>
+                        <UserAvatar name={member.name} size="md" interactive />
                       </button>
                       <button
                         className="flex-1 min-w-0 text-left"
@@ -200,12 +192,7 @@ export default function MessagingPage() {
               onClick={() => openProfile(selectedUser)}
               title="View profile"
             >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
-                style={{ backgroundColor: avatarBg(selectedUser) }}
-              >
-                {initials(selectedUser)}
-              </div>
+              <UserAvatar name={selectedUser} size="md" interactive />
 	              <div className="text-left">
 	                <div className="text-[14px] font-semibold text-[#E8E8E8] hover:text-white transition-colors">{selectedUser}</div>
 	                {selectedTeam && (
@@ -223,12 +210,11 @@ export default function MessagingPage() {
                 <div key={idx} className={`flex items-end gap-2.5 ${isYou ? "flex-row-reverse" : ""}`}>
                   {!isYou && (
                     <button
-                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-semibold text-white mb-px hover:opacity-75 transition-opacity"
-                      style={{ backgroundColor: avatarBg(msg.sender) }}
+                      className="mb-px hover:opacity-75 transition-opacity"
                       onClick={() => openProfile(msg.sender)}
                       title="View profile"
                     >
-                      {initials(msg.sender)}
+                      <UserAvatar name={msg.sender} size="sm" interactive />
                     </button>
                   )}
                   <div className={`max-w-[420px] ${isYou ? "items-end" : "items-start"} flex flex-col`}>

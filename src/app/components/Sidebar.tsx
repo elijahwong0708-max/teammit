@@ -1,4 +1,5 @@
 import { Compass, FolderOpen, CalendarDays, MessageSquare, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserAvatar } from "./UserAvatar";
 
 interface SidebarProps {
   activePage?: string;
@@ -45,9 +46,7 @@ export default function Sidebar({ activePage, isCollapsed, onToggle, onAvatarCli
             isCollapsed ? 'justify-center px-0' : 'gap-3 px-2.5'
           }`}
         >
-          <div className="w-8 h-8 rounded-full bg-[#6C7CFF] flex items-center justify-center flex-shrink-0 text-[10px] font-semibold text-white leading-none transition-shadow hover:ring-2 hover:ring-[#6C7CFF]/40">
-            EW
-          </div>
+          <UserAvatar name="Elijah Wang" size="md" interactive />
           <span
             className={`text-[13px] text-[#E8E8E8] truncate text-left whitespace-nowrap transition-all duration-150 ${
               isCollapsed ? 'opacity-0 -translate-x-2 w-0 overflow-hidden' : 'opacity-100 translate-x-0'

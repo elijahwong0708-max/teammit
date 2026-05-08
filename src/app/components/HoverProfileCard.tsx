@@ -1,6 +1,5 @@
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-function avatarBg(name: string) { return PALETTE[name.charCodeAt(0) % PALETTE.length]; }
-function initials(name: string) { return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(); }
+import { UserAvatar } from "./UserAvatar";
+
 const CURRENT_USER_NAME = "Elijah Wang";
 
 interface HoverProfileCardProps {
@@ -21,12 +20,7 @@ export default function HoverProfileCard({ user, position, onMouseEnter, onMouse
       onMouseLeave={onMouseLeave}
     >
       <div className="flex items-center gap-2.5 mb-2">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-semibold text-white"
-          style={{ backgroundColor: avatarBg(user.name) }}
-        >
-          {initials(user.name)}
-        </div>
+        <UserAvatar name={user.name} size="md" interactive />
         <div>
           <div className="text-[13px] font-semibold text-[#E8E8E8]">{user.name}</div>
           {user.role && <div className="text-[11px] text-[#8A8A8A]">{user.role}</div>}

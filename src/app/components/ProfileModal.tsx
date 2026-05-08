@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { UserAvatar } from "./UserAvatar";
 
 export interface ProfileUser {
   name: string;
@@ -16,10 +17,6 @@ interface ProfileModalProps {
   onClose: () => void;
   user?: ProfileUser;
 }
-
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-function avatarBg(name: string) { return PALETTE[name.charCodeAt(0) % PALETTE.length]; }
-function initials(name: string) { return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(); }
 
 const CURRENT_USER_NAME = "Elijah Wang";
 
@@ -54,8 +51,6 @@ export default function ProfileModal({ isOpen, onClose, user = DEFAULT_USER }: P
 
   const isSelf = user.name === CURRENT_USER_NAME;
   const displayUser = isSelf && isEditing ? draft : user;
-  const bg = avatarBg(displayUser.name);
-  const inits = initials(displayUser.name);
   const firstName = displayUser.name.split(" ")[0];
 
   const updateDraft = (field: keyof ProfileUser, value: string) => {
@@ -88,12 +83,7 @@ export default function ProfileModal({ isOpen, onClose, user = DEFAULT_USER }: P
           >
             <X size={14} />
           </button>
-          <div
-            className="absolute -bottom-8 left-6 w-16 h-16 rounded-full border-4 border-[#252526] flex items-center justify-center text-[18px] font-semibold text-white"
-            style={{ backgroundColor: bg }}
-          >
-            {inits}
-          </div>
+          <UserAvatar name={displayUser.name} size="xl" className="absolute -bottom-8 left-6 border-4 border-[#252526]" />
         </div>
 
         {/* Content */}

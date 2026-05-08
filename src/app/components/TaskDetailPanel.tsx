@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, AlignLeft, Quote, ListChecks, Upload, MessageSquare, Frame } from "lucide-react";
 import { toast } from "sonner";
+import { UserAvatar } from "./UserAvatar";
 
 interface TaskDetailPanelProps {
   isOpen: boolean;
@@ -15,16 +16,6 @@ interface TaskDetailPanelProps {
     status: "current" | "past" | "future";
     comments?: Array<{ author: string; text: string }>;
   } | null;
-}
-
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-
-function avatarBg(name: string) {
-  return PALETTE[name.charCodeAt(0) % PALETTE.length];
-}
-
-function initials(name: string) {
-  return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
 function SectionLabel({ icon: Icon, label }: { icon: typeof AlignLeft; label: string }) {
@@ -156,12 +147,7 @@ export default function TaskDetailPanel({ isOpen, onClose, task }: TaskDetailPan
                         {(task.comments ?? []).length > 0 ? (
                           (task.comments ?? []).map((comment, idx) => (
                             <div key={idx} className="flex gap-2.5">
-                              <div
-                                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0"
-                                style={{ backgroundColor: avatarBg(comment.author) }}
-                              >
-                                {initials(comment.author)}
-                              </div>
+                              <UserAvatar name={comment.author} size="sm" />
                               <div>
                                 <div className="text-[12px] font-semibold text-[#D8D8D8] mb-0.5">{comment.author}</div>
                                 <div className="text-[13px] text-[#B8B8B8] leading-relaxed">{comment.text}</div>

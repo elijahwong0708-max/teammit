@@ -3,10 +3,7 @@ import { ArrowLeft, CheckCircle2, Code2, CreditCard, PenTool, Search, Users } fr
 import type { LucideIcon } from "lucide-react";
 import Sidebar from "./Sidebar";
 import ProfileModal, { type ProfileUser } from "./ProfileModal";
-
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-function avatarBg(name: string) { return PALETTE[name.charCodeAt(0) % PALETTE.length]; }
-function initials(name: string) { return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(); }
+import { UserAvatar } from "./UserAvatar";
 
 const MEMBER_PROFILES: Record<string, ProfileUser> = {
   "Elijah Wang": { name: "Elijah Wang", role: "UX Designer",   intro: "Designing intuitive financial experiences with a focus on clarity and trust.", skills: ["Figma", "Wireframing", "Prototyping", "User Research"], availability: "4–6h/week", completed: 3, leftEarly: 0 },
@@ -111,12 +108,7 @@ export default function ProjectDetailPage() {
                     onClick={() => openProfile(project.creator.name)}
                     title="View profile"
                   >
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-semibold text-white flex-shrink-0"
-                      style={{ backgroundColor: avatarBg(project.creator.name) }}
-                    >
-                      {initials(project.creator.name)}
-                    </div>
+                    <UserAvatar name={project.creator.name} size="lg" interactive />
                     <div className="min-w-0">
                       <div className="text-[13px] font-medium text-[#E8E8E8] hover:text-white transition-colors">{project.creator.name}</div>
                       <div className="text-[12px] text-[#B8B8B8]">{project.creator.role}</div>
@@ -218,12 +210,7 @@ export default function ProjectDetailPage() {
                         onClick={() => openProfile(m.name)}
                         title="View profile"
                       >
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-semibold text-white"
-                          style={{ backgroundColor: avatarBg(m.name) }}
-                        >
-                          {initials(m.name)}
-                        </div>
+                        <UserAvatar name={m.name} size="md" interactive />
                         <div className="min-w-0">
                           <div className="text-[13px] font-medium text-[#E8E8E8] hover:text-white transition-colors">{m.name}</div>
                           <div className="text-[11px] text-[#8A8A8A]">{m.role}</div>

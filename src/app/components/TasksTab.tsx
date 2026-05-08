@@ -5,26 +5,10 @@ import { toast } from "sonner";
 import TaskDetailPanel from "./TaskDetailPanel";
 import ProfileModal, { type ProfileUser } from "./ProfileModal";
 import HoverProfileCard from "./HoverProfileCard";
-
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-
-function avatarBg(name: string) {
-  return PALETTE[name.charCodeAt(0) % PALETTE.length];
-}
-
-function initials(name: string) {
-  return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-}
+import { UserAvatar } from "./UserAvatar";
 
 function Avatar({ name }: { name: string }) {
-  return (
-    <div
-      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-semibold text-white transition-shadow hover:ring-2 hover:ring-[#6C7CFF]/40"
-      style={{ backgroundColor: avatarBg(name) }}
-    >
-      {initials(name)}
-    </div>
-  );
+  return <UserAvatar name={name} size="sm" interactive />;
 }
 
 function taskTypeIcon(title: string): { Icon: LucideIcon; color: string } {

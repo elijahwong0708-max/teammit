@@ -3,6 +3,7 @@ import { CreditCard, ShoppingBag, Activity, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Sidebar from "./Sidebar";
 import ProfileModal from "./ProfileModal";
+import { UserAvatar } from "./UserAvatar";
 
 interface Project {
   id: string;
@@ -181,19 +182,8 @@ const OUTCOME_STYLES: Record<Outcome, string> = {
   "Archived":   "text-[#8A8A8A] bg-[#252526] border border-[#3A3A3A]",
 };
 
-const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
-function avatarBg(name: string) { return PALETTE[name.charCodeAt(0) % PALETTE.length]; }
-function initials(name: string) { return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(); }
-
 function SmallAvatar({ name }: { name: string }) {
-  return (
-    <div
-      className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold text-white flex-shrink-0"
-      style={{ backgroundColor: avatarBg(name) }}
-    >
-      {initials(name)}
-    </div>
-  );
+  return <UserAvatar name={name} size="xs" />;
 }
 
 function HistoryDetailPanel({ item, onClose }: { item: HistoryProject; onClose: () => void }) {
