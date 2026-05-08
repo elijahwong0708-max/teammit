@@ -1,6 +1,7 @@
 const PALETTE = ["#6C7CFF", "#9B7BFF", "#4EC970", "#D7BA7D", "#F16D6D"];
 function avatarBg(name: string) { return PALETTE[name.charCodeAt(0) % PALETTE.length]; }
 function initials(name: string) { return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(); }
+const CURRENT_USER_NAME = "Elijah Wang";
 
 interface HoverProfileCardProps {
   user: { name: string; role?: string; bio?: string };
@@ -10,6 +11,8 @@ interface HoverProfileCardProps {
 }
 
 export default function HoverProfileCard({ user, position, onMouseEnter, onMouseLeave }: HoverProfileCardProps) {
+  const isSelf = user.name === CURRENT_USER_NAME;
+
   return (
     <div
       className="fixed z-50 bg-[#2B2B2B] border border-[#3A3A3A] rounded-[10px] p-3.5 w-56 shadow-xl animate-in fade-in-0 slide-in-from-left-1 duration-150"
@@ -36,9 +39,11 @@ export default function HoverProfileCard({ user, position, onMouseEnter, onMouse
       )}
       <button
         className="mt-3 h-7 px-3 rounded-[7px] border border-[#3A3A3A] bg-[#252526] text-[12px] text-[#D8D8D8] hover:text-[#E8E8E8] hover:border-[#6C7CFF] transition-all"
-        onClick={() => { window.location.href = `/messaging?user=${encodeURIComponent(user.name)}`; }}
+        onClick={() => {
+          if (!isSelf) window.location.href = `/messaging?user=${encodeURIComponent(user.name)}`;
+        }}
       >
-        Message
+        {isSelf ? "Edit Profile" : "Message"}
       </button>
     </div>
   );
