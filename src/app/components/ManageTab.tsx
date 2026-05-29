@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
-import { Plus, Trash2, GripVertical, X, Frame, Search, MousePointer2, GitBranch, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, GripVertical, Frame, Search, MousePointer2, GitBranch, ChevronDown, ChevronRight, CalendarDays, Upload } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
+import { UserAvatar } from "./UserAvatar";
 
 function taskTypeIcon(title: string): { Icon: LucideIcon; color: string } {
   const t = title.toLowerCase();
@@ -60,14 +61,8 @@ const INITIAL_TASKS: TaskBlock[] = [
   },
 ];
 
-const inputBase =
-  "w-full bg-[#202020] border border-[#3A3A3A] rounded-[8px] px-3 py-2 text-[13px] text-[#E8E8E8] placeholder:text-[#8A8A8A] outline-none focus:border-[#6C7CFF] transition-colors";
-
 const textareaBase =
   "w-full bg-[#202020] border border-[#3A3A3A] rounded-[8px] px-3 py-2 text-[13px] text-[#E8E8E8] placeholder:text-[#8A8A8A] outline-none focus:border-[#6C7CFF] transition-colors resize-none";
-
-const selectBase =
-  "w-full bg-[#202020] border border-[#3A3A3A] rounded-[8px] px-3 py-2 text-[13px] text-[#E8E8E8] outline-none focus:border-[#6C7CFF] transition-colors cursor-pointer";
 
 function SectionLabel({ label }: { label: string }) {
   return (
@@ -77,21 +72,13 @@ function SectionLabel({ label }: { label: string }) {
   );
 }
 
-function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+function DragDots({ active = false }: { active?: boolean }) {
   return (
-    <button
-      type="button"
-      onClick={onChange}
-      className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-        checked ? "bg-[#6C7CFF] border-[#6C7CFF]" : "border-[#3A3A3A] hover:border-[#6C7CFF]"
-      }`}
-    >
-      {checked && (
-        <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-          <path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </button>
+    <span className={`grid grid-cols-2 gap-x-1 gap-y-0.5 transition-colors ${active ? "text-[#D8D8D8]" : "text-[#5A5A5A] group-hover/step:text-[#A8A8A8]"}`}>
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <span key={idx} className="h-0.5 w-0.5 rounded-full bg-current" />
+      ))}
+    </span>
   );
 }
 
@@ -101,7 +88,9 @@ export default function ManageTab() {
     () => new Set(INITIAL_TASKS.map(task => task.id))
   );
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [draggingSubtask, setDraggingSubtask] = useState<{ taskId: string; subtaskId: string } | null>(null);
   const [dropTarget, setDropTarget] = useState<{ taskId: string; position: DropPosition } | null>(null);
+  const [subtaskDropTarget, setSubtaskDropTarget] = useState<{ taskId: string; subtaskId: string; position: DropPosition } | null>(null);
   const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({});
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>[]>>({});
 
@@ -217,6 +206,62 @@ export default function ManageTab() {
       return reordered;
     });
     handleDragEnd();
+  };
+
+  const handleSubtaskDragStart = (event: React.DragEvent, taskId: string, subtaskId: string) => {
+    event.stopPropagation();
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", subtaskId);
+    setDraggingSubtask({ taskId, subtaskId });
+  };
+
+  const handleSubtaskDragEnd = () => {
+    setDraggingSubtask(null);
+    setSubtaskDropTarget(null);
+  };
+
+  const handleSubtaskDragOver = (event: React.DragEvent<HTMLDivElement>, taskId: string, subtaskId: string) => {
+    if (!draggingSubtask || draggingSubtask.taskId !== taskId || draggingSubtask.subtaskId === subtaskId) {
+      setSubtaskDropTarget(null);
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    const rect = event.currentTarget.getBoundingClientRect();
+    const position: DropPosition = event.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    setSubtaskDropTarget({ taskId, subtaskId, position });
+  };
+
+  const handleSubtaskDrop = (event: React.DragEvent<HTMLDivElement>, taskId: string, subtaskId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const draggedSubtaskId = draggingSubtask?.subtaskId ?? event.dataTransfer.getData("text/plain");
+    const position = subtaskDropTarget?.taskId === taskId && subtaskDropTarget.subtaskId === subtaskId
+      ? subtaskDropTarget.position
+      : "after";
+
+    if (!draggedSubtaskId || draggedSubtaskId === subtaskId) {
+      handleSubtaskDragEnd();
+      return;
+    }
+
+    setTasks(prev => prev.map(task => {
+      if (task.id !== taskId) return task;
+
+      const draggedSubtask = task.subtasks.find(subtask => subtask.id === draggedSubtaskId);
+      if (!draggedSubtask) return task;
+
+      const reordered = task.subtasks.filter(subtask => subtask.id !== draggedSubtaskId);
+      const targetIndex = reordered.findIndex(subtask => subtask.id === subtaskId);
+      if (targetIndex === -1) return task;
+
+      const insertIndex = position === "after" ? targetIndex + 1 : targetIndex;
+      reordered.splice(insertIndex, 0, draggedSubtask);
+      return { ...task, subtasks: reordered };
+    }));
+    scheduleAutosave(taskId);
+    handleSubtaskDragEnd();
   };
 
   const addSubtask = (taskId: string) => {
@@ -375,98 +420,144 @@ export default function ManageTab() {
                     Break the main task into smaller steps. Each step can have its own short explanation.
                   </p>
 
-                  <div className="relative pl-4 border-l-2 border-[#333333] space-y-2.5">
+                  <div className="overflow-hidden rounded-[12px] border border-[#3A3A3A] bg-[#1F1F1F]">
                     {task.subtasks.map((subtask, idx) => (
                       <div
                         key={subtask.id}
-                        className="bg-[#1E1E1E] border border-[#3A3A3A] rounded-[10px] p-4"
+                        className={`group/step relative grid min-h-[68px] grid-cols-[24px_28px_1fr_32px] items-center gap-2 border-b border-white/[0.06] px-3.5 py-3 transition-colors hover:bg-[#242424] ${
+                          draggingSubtask?.subtaskId === subtask.id ? "bg-[#272738]" : ""
+                        }`}
+                        onDragOver={event => handleSubtaskDragOver(event, task.id, subtask.id)}
+                        onDrop={event => handleSubtaskDrop(event, task.id, subtask.id)}
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-[11px] font-semibold text-[#8A8A8A] uppercase tracking-wider">
-                            Step {idx + 1}
-                          </span>
-                          {task.subtasks.length > 1 && (
-                            <button
-                              onClick={() => deleteSubtask(task.id, subtask.id)}
-                              className="text-[#5A5A5A] hover:text-[#F16D6D] transition-colors"
-                              title="Remove step"
-                            >
-                              <X size={13} />
-                            </button>
-                          )}
+                        {subtaskDropTarget?.subtaskId === subtask.id && subtaskDropTarget.position === "before" && (
+                          <div className="absolute left-3 right-3 top-0 z-10 h-px bg-[#8B7CFF]" />
+                        )}
+                        {subtaskDropTarget?.subtaskId === subtask.id && subtaskDropTarget.position === "after" && (
+                          <div className="absolute bottom-0 left-3 right-3 z-10 h-px bg-[#8B7CFF]" />
+                        )}
+
+                        <div
+                          draggable
+                          onDragStart={event => handleSubtaskDragStart(event, task.id, subtask.id)}
+                          onDragEnd={handleSubtaskDragEnd}
+                          className={`flex h-8 items-center justify-center rounded-[6px] transition-colors hover:bg-[#2E2E2E] ${
+                            draggingSubtask?.subtaskId === subtask.id ? "cursor-grabbing" : "cursor-grab"
+                          }`}
+                          title="Drag to reorder step"
+                        >
+                          <DragDots active={draggingSubtask?.subtaskId === subtask.id} />
                         </div>
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={subtask.name}
-                            onChange={e => updateSubtask(task.id, subtask.id, "name", e.target.value)}
-                            placeholder="Step title"
-                            className={inputBase}
-                          />
+
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[#8B7CFF] bg-[#22222A] text-[11px] font-medium text-[#8B7CFF]">
+                          {idx + 1}
+                        </div>
+
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex min-w-0 items-center gap-1">
+                            <span className="flex-shrink-0 text-[13px] font-medium text-[#E8E8E8]">
+                              Step {idx + 1} -
+                            </span>
+                            <input
+                              type="text"
+                              value={subtask.name}
+                              onChange={e => updateSubtask(task.id, subtask.id, "name", e.target.value)}
+                              placeholder="Step title"
+                              className="min-w-0 flex-1 rounded-[6px] border border-transparent bg-transparent px-1 py-0.5 text-[13px] font-medium text-[#E8E8E8] outline-none transition-colors placeholder:text-[#5A5A5A] hover:border-[#333333] focus:border-[#8B7CFF] focus:bg-[#202020]"
+                              aria-label={`Step ${idx + 1} title`}
+                            />
+                          </div>
                           <textarea
                             value={subtask.explanation}
                             onChange={e => updateSubtask(task.id, subtask.id, "explanation", e.target.value)}
                             placeholder="What should this step accomplish?"
                             rows={2}
-                            className={textareaBase}
+                            className="w-full resize-none rounded-[6px] border border-transparent bg-transparent px-1 py-0.5 text-[12px] leading-snug text-[#8A8A8A] outline-none transition-colors placeholder:text-[#5A5A5A] hover:border-[#333333] focus:border-[#8B7CFF] focus:bg-[#202020] focus:text-[#B8B8B8]"
+                            aria-label={`Step ${idx + 1} explanation`}
                           />
                         </div>
+
+                        <button
+                          onClick={() => deleteSubtask(task.id, subtask.id)}
+                          disabled={task.subtasks.length === 1}
+                          className="flex h-8 w-8 items-center justify-center rounded-[7px] text-[#5A5A5A] transition-colors hover:bg-[#2E2E2E] hover:text-[#F16D6D] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent disabled:hover:text-[#5A5A5A]"
+                          title="Remove step"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     ))}
 
                     <button
                       onClick={() => addSubtask(task.id)}
-                      className="flex items-center gap-1.5 h-9 px-3.5 rounded-[8px] border border-dashed border-[#3A3A3A] text-[12px] text-[#8A8A8A] hover:text-[#B8B8B8] hover:border-[#6C7CFF] transition-all"
+                      className="flex h-10 w-full items-center gap-2 px-3.5 text-[12px] font-medium text-[#8B7CFF] transition-colors hover:bg-[#29283A]"
                     >
-                      <Plus size={12} />
-                      Add Subtask
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#8B7CFF]/70">
+                        <Plus size={11} />
+                      </span>
+                      Add step
                     </button>
                   </div>
                 </div>
 
-                {/* Assignment & Deadline */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Assignment, Deadline & Requirement */}
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <SectionLabel label="Assign To" />
-                    <select
-                      value={task.assignedTo}
-                      onChange={e => updateTask(task.id, "assignedTo", e.target.value)}
-                      className={selectBase}
-                    >
-                      <option value="">Select team member</option>
-                      <option>Sarah Chen</option>
-                      <option>Marcus Liu</option>
-                      <option>Anna Kim</option>
-                      <option>Elijah Wang</option>
-                    </select>
+                    <div className="relative flex h-10 items-center gap-2 rounded-[9px] border border-[#3A3A3A] bg-[#202020] px-3 transition-colors hover:border-[#4A4A4A] focus-within:border-[#8B7CFF]">
+                      {task.assignedTo ? (
+                        <UserAvatar name={task.assignedTo} size="sm" />
+                      ) : (
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full border border-[#3A3A3A] text-[10px] text-[#6A6A6A]">--</span>
+                      )}
+                      <span className={`min-w-0 flex-1 truncate text-[13px] ${task.assignedTo ? "text-[#E8E8E8]" : "text-[#6A6A6A]"}`}>
+                        {task.assignedTo || "Select team member"}
+                      </span>
+                      <ChevronDown size={14} className="text-[#8A8A8A]" />
+                      <select
+                        value={task.assignedTo}
+                        onChange={e => updateTask(task.id, "assignedTo", e.target.value)}
+                        className="absolute inset-0 cursor-pointer opacity-0"
+                        aria-label="Assign to"
+                      >
+                        <option value="">Select team member</option>
+                        <option>Sarah Chen</option>
+                        <option>Marcus Liu</option>
+                        <option>Anna Kim</option>
+                        <option>Elijah Wang</option>
+                      </select>
+                    </div>
                   </div>
                   <div>
                     <SectionLabel label="Deadline" />
-                    <input
-                      type="text"
-                      value={task.deadline}
-                      onChange={e => updateTask(task.id, "deadline", e.target.value)}
-                      placeholder="Day X, 11:59 PM"
-                      className={inputBase}
-                    />
-                  </div>
-                </div>
-
-                {/* Requirement */}
-                <div>
-                  <SectionLabel label="Requirement" />
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <Checkbox
-                      checked={task.requiresUpload}
-                      onChange={() => updateTask(task.id, "requiresUpload", !task.requiresUpload)}
-                    />
-                    <div>
-                      <div className="text-[13px] text-[#D8D8D8] leading-none mb-1">Requires upload</div>
-                      <div className="text-[12px] text-[#6A6A6A]">
-                        If enabled, the assigned member must upload a file to complete this task.
-                      </div>
+                    <div className="relative flex h-10 items-center gap-2 rounded-[9px] border border-[#3A3A3A] bg-[#202020] px-3 transition-colors hover:border-[#4A4A4A] focus-within:border-[#8B7CFF]">
+                      <CalendarDays size={14} className="flex-shrink-0 text-[#8B7CFF]" />
+                      <input
+                        type="text"
+                        value={task.deadline}
+                        onChange={e => updateTask(task.id, "deadline", e.target.value)}
+                        placeholder="Day X, 11:59 PM"
+                        className="min-w-0 flex-1 bg-transparent text-[13px] text-[#E8E8E8] outline-none placeholder:text-[#6A6A6A]"
+                      />
+                      <ChevronDown size={14} className="flex-shrink-0 text-[#8A8A8A]" />
                     </div>
-                  </label>
+                  </div>
+                  <div>
+                    <SectionLabel label="Requirement" />
+                    <button
+                      type="button"
+                      onClick={() => updateTask(task.id, "requiresUpload", !task.requiresUpload)}
+                      className={`flex h-10 w-full items-center gap-2 rounded-[9px] border bg-[#202020] px-3 text-left transition-colors hover:border-[#4A4A4A] ${
+                        task.requiresUpload ? "border-[#8B7CFF]/60" : "border-[#3A3A3A]"
+                      }`}
+                    >
+                      <Upload size={14} className={task.requiresUpload ? "text-[#8B7CFF]" : "text-[#8A8A8A]"} />
+                      <span className="min-w-0 flex-1 truncate text-[13px] text-[#E8E8E8]">
+                        {task.requiresUpload ? "Requires upload" : "No upload required"}
+                      </span>
+                      <ChevronDown size={14} className="text-[#8A8A8A]" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Actions */}
