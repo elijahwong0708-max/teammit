@@ -36,7 +36,7 @@ const ALL_TASK_STATUS: Record<string, string> = {
 function StatusPill({ status, map }: { status: string; map: Record<string, string> }) {
   const cls = map[status] ?? "bg-[#252526] text-[#8A8A8A] border border-[#3A3A3A]";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${cls}`}>
+    <span className={`inline-flex w-fit max-w-max items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${cls}`}>
       {status}
     </span>
   );
@@ -307,8 +307,10 @@ export default function TasksTab() {
                   </div>
 	                  <span className="text-[13px] text-[#D8D8D8] tabular-nums">{task.progress}</span>
 	                  <span className="text-[12px] text-[#8A8A8A]">{task.due}</span>
-	                  <StatusPill status={task.status} map={MY_TASK_STATUS} />
-	                  <div className="text-[12px] text-[#D8D8D8] min-w-0">
+	                  <div className="flex items-center justify-start pr-4">
+	                    <StatusPill status={task.status} map={MY_TASK_STATUS} />
+	                  </div>
+	                  <div className="text-[12px] text-[#D8D8D8] min-w-0 pl-4">
 	                    {task.submission ? (
 	                      <span className="flex items-center gap-1.5 min-w-0">
 	                        <span className="truncate">{task.submission}</span>
@@ -421,7 +423,9 @@ export default function TasksTab() {
 	                  <Avatar name={task.owner} />
 	                  <span className="text-[12px] text-[#D8D8D8] hover:text-[#E8E8E8] transition-colors">{task.owner}</span>
 	                </button>
-                <StatusPill status={task.status} map={ALL_TASK_STATUS} />
+                <div className="flex items-center justify-start pr-4">
+                  <StatusPill status={task.status} map={ALL_TASK_STATUS} />
+                </div>
                 <span className="text-[12px] text-[#8A8A8A]">{task.due}</span>
                 <div className="text-[12px] text-[#D8D8D8]">
                   {task.file ? (

@@ -20,7 +20,7 @@ const STATUS_STYLES: Record<string, string> = {
 function StatusPill({ status }: { status: string }) {
   const cls = STATUS_STYLES[status] ?? STATUS_STYLES["No task assigned"];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${cls}`}>
+    <span className={`inline-flex w-fit max-w-max items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${cls}`}>
       {status}
     </span>
   );
@@ -212,7 +212,9 @@ export default function OverviewTab() {
                 </button>
 
                 <div className="text-[12px] text-[#8A8A8A]">{member.due || "—"}</div>
-                <div><StatusPill status={member.status} /></div>
+                <div className="flex items-center justify-start">
+                  <StatusPill status={member.status} />
+                </div>
               </div>
             );
           })}
