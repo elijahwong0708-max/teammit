@@ -1,4 +1,4 @@
-import { UserAvatar } from "./UserAvatar";
+import { isUserOnline, UserAvatar } from "./UserAvatar";
 
 const CURRENT_USER_NAME = "Elijah Wang";
 
@@ -11,6 +11,7 @@ interface HoverProfileCardProps {
 
 export default function HoverProfileCard({ user, position, onMouseEnter, onMouseLeave }: HoverProfileCardProps) {
   const isSelf = user.name === CURRENT_USER_NAME;
+  const isOnline = isUserOnline(user.name);
 
   return (
     <div
@@ -20,10 +21,20 @@ export default function HoverProfileCard({ user, position, onMouseEnter, onMouse
       onMouseLeave={onMouseLeave}
     >
       <div className="flex items-center gap-2.5 mb-2">
-        <UserAvatar name={user.name} size="md" interactive />
+        <UserAvatar name={user.name} size="md" interactive presenceRingClassName="ring-[#2B2B2B]" />
         <div>
           <div className="text-[13px] font-semibold text-[#E8E8E8]">{user.name}</div>
-          {user.role && <div className="text-[11px] text-[#8A8A8A]">{user.role}</div>}
+          {user.role && (
+            <div className="flex items-center gap-1 text-[11px] text-[#8A8A8A]">
+              <span>{user.role}</span>
+              {isOnline && (
+                <>
+                  <span>·</span>
+                  <span className="font-medium text-[#5EC27D]">Active now</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {user.bio && (

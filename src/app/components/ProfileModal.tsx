@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { UserAvatar } from "./UserAvatar";
+import { isUserOnline, UserAvatar } from "./UserAvatar";
 
 export interface ProfileUser {
   name: string;
@@ -10,6 +10,7 @@ export interface ProfileUser {
   availability?: string;
   completed?: number;
   leftEarly?: number;
+  isOnline?: boolean;
 }
 
 interface ProfileModalProps {
@@ -51,6 +52,7 @@ export default function ProfileModal({ isOpen, onClose, user = DEFAULT_USER }: P
 
   const isSelf = user.name === CURRENT_USER_NAME;
   const displayUser = isSelf && isEditing ? draft : user;
+  const isOnline = displayUser.isOnline ?? isUserOnline(displayUser.name);
   const firstName = displayUser.name.split(" ")[0];
 
   const updateDraft = (field: keyof ProfileUser, value: string) => {
@@ -83,16 +85,29 @@ export default function ProfileModal({ isOpen, onClose, user = DEFAULT_USER }: P
           >
             <X size={14} />
           </button>
-          <UserAvatar name={displayUser.name} size="xl" className="absolute -bottom-8 left-6 border-4 border-[#252526]" />
+          <UserAvatar
+            name={displayUser.name}
+            size="xl"
+            isOnline={isOnline}
+            className="absolute -bottom-8 left-6 rounded-full border-4 border-[#252526]"
+          />
         </div>
 
         {/* Content */}
         <div className="px-6 pt-12 pb-6">
           <div className="mb-5">
 	            <h2 className="text-[18px] font-semibold text-[#E8E8E8] mb-1">{displayUser.name}</h2>
-	            <span className="text-[12px] font-medium px-2 py-0.5 rounded-full bg-[#2F2F2F] border border-[#3A3A3A] text-[#B8B8B8]">
-	              {displayUser.role}
-	            </span>
+	            <div className="flex items-center gap-2">
+	              <span className="text-[12px] font-medium px-2 py-0.5 rounded-full bg-[#2F2F2F] border border-[#3A3A3A] text-[#B8B8B8]">
+	                {displayUser.role}
+	              </span>
+	              {isOnline && (
+	                <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#5EC27D]">
+	                  <span className="h-1.5 w-1.5 rounded-full bg-[#5EC27D]" />
+	                  Active now
+	                </span>
+	              )}
+	            </div>
 	          </div>
 
 	          {isSelf && isEditing ? (

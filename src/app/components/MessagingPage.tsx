@@ -11,39 +11,39 @@ const TEAMS = [
     project: "Mobile Banking Redesign",
     color: "#6C7CFF",
     members: [
-      { name: "Sarah Chen", role: "UX Researcher" },
-      { name: "Marcus Liu", role: "Developer" },
-      { name: "Anna Kim", role: "UX Designer" },
+      { name: "Sarah Chen", role: "UX Researcher", isOnline: true },
+      { name: "Marcus Liu", role: "Developer", isOnline: true },
+      { name: "Anna Kim", role: "Visual Designer", isOnline: false },
     ],
   },
   {
     project: "E-commerce Checkout",
     color: "#9B7BFF",
     members: [
-      { name: "David Lin", role: "Developer" },
-      { name: "Kevin Zhao", role: "Designer" },
+      { name: "David Lin", role: "UX Designer", isOnline: false },
+      { name: "Kevin Zhao", role: "Frontend Developer", isOnline: false },
     ],
   },
   {
     project: "Fitness Dashboard",
     color: "#4EC970",
     members: [
-      { name: "Olivia Park", role: "Product Designer" },
-      { name: "Jason Miller", role: "Frontend Developer" },
-      { name: "Maya Chen", role: "UX Researcher" },
+      { name: "Olivia Park", role: "Product Designer", isOnline: true },
+      { name: "Jason Miller", role: "Developer", isOnline: true },
+      { name: "Maya Chen", role: "UX Researcher", isOnline: false },
     ],
   },
 ];
 
 const MEMBER_PROFILES: Record<string, ProfileUser> = {
-  "Sarah Chen": { name: "Sarah Chen", role: "UX Researcher", intro: "Focused on user research and usability testing.", skills: ["User Research", "Figma", "Survey Design"], availability: "4–6h/week", completed: 3, leftEarly: 0 },
-  "Marcus Liu": { name: "Marcus Liu", role: "Developer",     intro: "Full-stack developer comfortable with React and TypeScript.", skills: ["React", "TypeScript", "Node.js"], availability: "6–8h/week", completed: 5, leftEarly: 1 },
-  "Anna Kim":   { name: "Anna Kim",   role: "UX Designer",   intro: "Visual designer with a focus on accessibility and design systems.", skills: ["Figma", "Motion Design", "Accessibility"], availability: "2–4h/week", completed: 2, leftEarly: 0 },
-  "David Lin":  { name: "David Lin",  role: "Developer",     intro: "Frontend developer specializing in e-commerce flows.", skills: ["React", "CSS", "Figma"], availability: "4–6h/week", completed: 4, leftEarly: 0 },
-  "Kevin Zhao": { name: "Kevin Zhao", role: "Designer",      intro: "UI designer with experience in brand and product design.", skills: ["Figma", "Illustration", "Brand Design"], availability: "2–4h/week", completed: 2, leftEarly: 1 },
-  "Olivia Park": { name: "Olivia Park", role: "Product Designer", intro: "Designs dashboard layouts and visual systems for analytics products.", skills: ["Dashboard Design", "Figma", "UX"], availability: "4–6h/week", completed: 4, leftEarly: 0 },
-  "Jason Miller": { name: "Jason Miller", role: "Frontend Developer", intro: "Builds data-rich interfaces with React and charting libraries.", skills: ["React", "Charts", "TypeScript"], availability: "6–8h/week", completed: 5, leftEarly: 0 },
-  "Maya Chen": { name: "Maya Chen", role: "UX Researcher", intro: "Focuses on fitness behavior research and usability feedback.", skills: ["User Research", "Interviews", "Synthesis"], availability: "4–6h/week", completed: 3, leftEarly: 0 },
+  "Sarah Chen": { name: "Sarah Chen", role: "UX Researcher", isOnline: true, intro: "Focused on user research and usability testing.", skills: ["User Research", "Figma", "Survey Design"], availability: "4–6h/week", completed: 3, leftEarly: 0 },
+  "Marcus Liu": { name: "Marcus Liu", role: "Developer", isOnline: true, intro: "Full-stack developer comfortable with React and TypeScript.", skills: ["React", "TypeScript", "Node.js"], availability: "6–8h/week", completed: 5, leftEarly: 1 },
+  "Anna Kim":   { name: "Anna Kim", role: "Visual Designer", isOnline: false, intro: "Visual designer with a focus on accessibility and design systems.", skills: ["Figma", "Motion Design", "Accessibility"], availability: "2–4h/week", completed: 2, leftEarly: 0 },
+  "David Lin":  { name: "David Lin", role: "UX Designer", isOnline: false, intro: "Frontend developer specializing in e-commerce flows.", skills: ["React", "CSS", "Figma"], availability: "4–6h/week", completed: 4, leftEarly: 0 },
+  "Kevin Zhao": { name: "Kevin Zhao", role: "Frontend Developer", isOnline: false, intro: "UI designer with experience in brand and product design.", skills: ["Figma", "Illustration", "Brand Design"], availability: "2–4h/week", completed: 2, leftEarly: 1 },
+  "Olivia Park": { name: "Olivia Park", role: "Product Designer", isOnline: true, intro: "Designs dashboard layouts and visual systems for analytics products.", skills: ["Dashboard Design", "Figma", "UX"], availability: "4–6h/week", completed: 4, leftEarly: 0 },
+  "Jason Miller": { name: "Jason Miller", role: "Developer", isOnline: true, intro: "Builds data-rich interfaces with React and charting libraries.", skills: ["React", "Charts", "TypeScript"], availability: "6–8h/week", completed: 5, leftEarly: 0 },
+  "Maya Chen": { name: "Maya Chen", role: "UX Researcher", isOnline: false, intro: "Focuses on fitness behavior research and usability feedback.", skills: ["User Research", "Interviews", "Synthesis"], availability: "4–6h/week", completed: 3, leftEarly: 0 },
 };
 
 type Messages = Record<string, Array<{ sender: string; text: string; time: string }>>;
@@ -124,6 +124,7 @@ export default function MessagingPage() {
 
   const currentMessages = messages[selectedUser] ?? [];
   const selectedTeam = TEAMS.find(team => team.members.some(member => member.name === selectedUser));
+  const selectedProfile = MEMBER_PROFILES[selectedUser];
 
   return (
     <div className="flex h-screen bg-[#1E1E1E] overflow-hidden">
@@ -164,7 +165,13 @@ export default function MessagingPage() {
                         className="flex-shrink-0 hover:opacity-80 transition-opacity"
                         title="View profile"
                       >
-                        <UserAvatar name={member.name} size="md" interactive />
+                        <UserAvatar
+                          name={member.name}
+                          size="md"
+                          isOnline={member.isOnline}
+                          interactive
+                          presenceRingClassName="ring-[#1B1B1B]"
+                        />
                       </button>
                       <button
                         className="flex-1 min-w-0 text-left"
@@ -192,12 +199,27 @@ export default function MessagingPage() {
               onClick={() => openProfile(selectedUser)}
               title="View profile"
             >
-              <UserAvatar name={selectedUser} size="md" interactive />
+              <UserAvatar
+                name={selectedUser}
+                size="md"
+                isOnline={selectedProfile?.isOnline}
+                interactive
+                presenceRingClassName="ring-[#1B1B1B]"
+              />
 	              <div className="text-left">
-	                <div className="text-[14px] font-semibold text-[#E8E8E8] hover:text-white transition-colors">{selectedUser}</div>
-	                {selectedTeam && (
-	                  <div className="text-[11px] text-[#8A8A8A] mt-0.5">{selectedTeam.project}</div>
-	                )}
+	                <div className="text-[15px] font-semibold text-[#E8E8E8] hover:text-white transition-colors">{selectedUser}</div>
+	                <div className="flex items-center gap-1 text-[12px] text-[#B8B8B8] mt-0.5">
+                    <span>{selectedProfile?.role}</span>
+                    {selectedProfile?.isOnline && (
+                      <>
+                        <span>·</span>
+                        <span className="font-medium text-[#5EC27D]">Active now</span>
+                      </>
+                    )}
+                  </div>
+                  {selectedTeam && (
+                    <div className="text-[10px] text-[#8A8A8A] mt-0.5">{selectedTeam.project}</div>
+                  )}
 	              </div>
             </button>
           </div>
@@ -214,7 +236,7 @@ export default function MessagingPage() {
                       onClick={() => openProfile(msg.sender)}
                       title="View profile"
                     >
-                      <UserAvatar name={msg.sender} size="sm" interactive />
+                      <UserAvatar name={msg.sender} size="sm" interactive presenceRingClassName="ring-[#202020]" />
                     </button>
                   )}
                   <div className={`max-w-[420px] ${isYou ? "items-end" : "items-start"} flex flex-col`}>
